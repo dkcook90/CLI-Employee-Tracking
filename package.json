@@ -1,0 +1,26 @@
+{
+  "name": "cli-employee-tracking",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkcook90/CLI-Employee-Tracking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dkcook90/CLI-Employee-Tracking/issues"
+  },
+  "homepage": "https://github.com/dkcook90/CLI-Employee-Tracking#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "express": "^4.17.3",
+    "inquirer": "^8.2.1"
+  }
+}
