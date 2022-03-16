@@ -1,11 +1,10 @@
-const { urlencoded } = require('express');
 const express = require('express');
 const mysql = require('mysql2');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 
-app.use(express,urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 const db = mysql.createConnection(
@@ -21,7 +20,9 @@ const db = mysql.createConnection(
     console.log('Successfully conneted to the employees_db database!')
 );
 
-
+db.query('SELECT first_name, last_name FROM employee;', (err, results) => {
+    err ? console.log(err) : console.log(results)
+})
 
 
 
