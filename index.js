@@ -1,37 +1,78 @@
 const inquirer = require('inquirer');
+const mysql = require('mysql2');
+const cTable = require('console.table');
+
+const db = mysql.createConnection(
+    {
+        host: 'localhost',
+
+        user: 'root',
+
+        password: 'mysqllogin',
+
+        database: 'employees_db'
+    },
+    console.log('Successfully conneted to the employees_db database!')
+);
 
 function mainPrompt() {
     inquirer
-        .prompt [
+        .prompt([
             {
                 type: 'list',
                 message: 'What would you like to do?',
-                name: 'firstChoices',
+                name: 'todo',
                 choices:
                     [
                         'View all departments',
                         'View all roles',
-                        'View all empoyees',
-                        'Add a Department',
+                        'View all employees',
+                        'Add a department',
                         'Add a role',
                         'Add an employee',
                         'Update an employee role'
                     ]
             }
-        ]
-        .then(mainPromptAnswers)
+        ])
+        .then((response) => {
+            if (response.todo === 'View all employees') {
+                getEmployeeList();
+                setTimeout(mainPrompt, 3000);
+            } else if (response.todo === 'View all roles') {
+                getRoles();
+                setTimeout(mainPrompt, 3000);
+            } else if (response.todo === 'View all departments') {
+                getDepartments();
+                setTimeout(mainPrompt, 3000);
+            } else if (response.todo === 'Add an employee') {
+                addEmployee();
+            } else if (response.todo === 'Add a role') {
+                addRole();
+            } else if (response.todo === 'Add a department') {
+                addDepartment();
+            } else if (response.todo === 'Update an employee role') {
+                updateEmployee();
+            }
+        });
 }
 
 function addDepartment () {
     inquirer
-        .prompt [
+        .prompt ([
             {
                 type: 'input',
                 message: 'Please type the name of the new department..',
                 name: 'newDepartmentName'
             }
-        ]
-        .then(addDepartmentAnswers)
+        ])
+        .then((response) => {
+            db.query(`INSERT INTO department (name) 
+                        VALUES('${response.newDepartmentName}')`, 
+                        (err, results) => err ? console.log(err) : console.log(`${response.newDepartmentName} successfully added!`)
+            );
+            setTimeout(mainPrompt, 3000);
+        })
+        .catch((err) => console.log(err))
 }
 
 function addRole () {
@@ -96,5 +137,22 @@ function updateEmployee () {
 }
 
 function getEmployeeList () {
-    fetch ('SELECT first_name, last_name FROM employee;');
+    db.query('SELECT first_name, last_name FROM employee;', (err, results) => {
+        err ? console.log(err) : console.table(results)
+    });
 }
+
+function getRoles () {
+    db.query('SELECT title FROM role;', (err, results) => {
+        err ? console.log(err) : console.table(results)
+    });
+}
+
+function getDepartments () {
+    db.query('SELECT name FROM department;', (err, results) => {
+        err ? console.log(err) : console.table(results)
+    });
+}
+
+
+mainPrompt()
