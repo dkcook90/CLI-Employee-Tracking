@@ -1,6 +1,8 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
+const { json } = require('express/lib/response');
+const res = require('express/lib/response');
 
 const db = mysql.createConnection(
     {
@@ -14,6 +16,39 @@ const db = mysql.createConnection(
     },
     console.log('Successfully conneted to the employees_db database!')
 );
+
+let departmentArray = []
+
+function departmentList() {
+    db.query('SELECT id FROM department;', (err, results) => {
+        err ? console.log(err) : results
+        results.map((result) => {
+            departmentArray.push(result.id)
+        })
+    });
+}
+
+let roleArray = []
+
+function roleList() {
+    db.query('SELECT id FROM role;', (err, results) => {
+        err ? console.log(err) :
+        results.map((result) => {
+            roleArray.push(result.id)
+        })
+    });
+}
+
+let managerArray = []
+
+function managerList() {
+    db.query('SELECT id FROM employee;', (err, results) => {
+        err ? console.log(err) :
+        results.map((result) => {
+            managerArray.push(result.id)
+        })
+    });
+}
 
 function mainPrompt() {
     inquirer
@@ -76,8 +111,9 @@ function addDepartment () {
 }
 
 function addRole () {
+    departmentList()
     inquirer
-        .prompt [
+        .prompt ([
             {
                 type: 'input',
                 message: 'Please type the title of the new role..',
@@ -89,18 +125,27 @@ function addRole () {
                 name: 'newRoleSalary'
             },
             {
-                type: 'choices',
-                message: 'What department is the new role under?',
-                choices: [],
-                name: 'newRoleSalary'
+                type: 'list',
+                message: 'What is the department id for the new role?',
+                choices: departmentList(),
+                name: 'departmentId'
             }
-        ]
-        .then(addRoleAnswers)
+        ])
+        .then((response) => {
+            db.query(`INSERT INTO role (title, salary, department_id) 
+                        VALUES('${response.newRoleTitle}', ${response.newRoleSalary}, ${response.departmentId})`, 
+                        (err, results) => err ? console.log(err) : console.log(`${response.newRoleTitle} successfully added!`)
+            );
+            setTimeout(mainPrompt, 3000);
+        })
+        .catch((err) => console.log(err))
 }
 
 function addEmployee () {
+    roleList()
+    managerList()
     inquirer
-        .prompt [
+        .prompt ([
             {
                 type: 'input',
                 message: 'What is the first name of the new employee?',
@@ -112,16 +157,26 @@ function addEmployee () {
                 name: 'newEmployeeLast'
             },
             {
-                type: 'input',
-                message: 'Please enter the role id for the new employee..',
+                type: 'list',
+                message: 'Please select the role id for the new employee..',
+                choices: roleArray,
                 name: 'newEmployeeRole'
             },
             {
-                type: 'input',
-                message: 'Please enter the manager id for the new employee..',
+                type: 'list',
+                message: 'Please select the manager ID for the new employee',
+                choices: managerArray,
                 name: 'newEmployeeManager'
             }
-        ]
+        ])
+        .then((response) => {
+            db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) 
+                        VALUES('${response.newEmployeeFirst}', '${response.newEmployeeLast}', ${response.newEmployeeRole}, ${response.newEmployeeManager})`, 
+                        (err, results) => err ? console.log(err) : console.log(`${response.newEmployeeFirst} ${response.newEmployeeLast} successfully added!`)
+            );
+            setTimeout(mainPrompt, 3000);
+        })
+        .catch((err) => console.log(err))
 }
 
 function updateEmployee () {
@@ -149,10 +204,11 @@ function getRoles () {
 }
 
 function getDepartments () {
-    db.query('SELECT name FROM department;', (err, results) => {
+    db.query('SELECT name, id FROM department;', (err, results) => {
         err ? console.log(err) : console.table(results)
     });
 }
 
 
 mainPrompt()
+// departmentList()
