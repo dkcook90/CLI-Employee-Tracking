@@ -198,55 +198,57 @@ async function updateEmployee () {
     inquirer
         .prompt ([
             {
-                type: 'input',
-                message: 'Are you sure you would like to update an Employee?',
+                type: 'confirm',
+                message: 'Are you sure you would like to update an Employee role?',
+                default: true,
                 name: 'yesOrNo'
             },
-            {
-                type: 'list',
-                message: 'Which employee would you like to update?',
-                choices: employeeArray,
-                name: 'employeeUpdateChoice'
-            }
         ])
-        .then((updateEmployeeChoice) => {
-            updateFollowup(updateEmployeeChoice)
+        .then((response) => {
+            if (response.yesOrNo === true) {
+                updateFollowup()
+            } else {
+                mainPrompt()
+            }
         })
 }
 
-function updateFollowup (employeename) {
+function updateFollowup () {
     inquirer
         .prompt ([
             {
                 type: 'list',
-                message: 'What would you like to update?',
-                choices: [
-                    'First Name',
-                    'Last Name',
-                    'Role ID',
-                    'Manager ID'
-                ],
+                message: 'Which employee role would you like to update?',
+                choices: employeeArray,
                 name: 'updateChoice'
             }
         ])
-        .then ((updateDecision) => {
-            if (updateDecision === 'First Name') {
-                changeFirstName(employeename)
-            }
+        .then ((response) => {
+            updateRole(response.updateChoice)
         })
 }
 
-function changeFirstName (employeename) {
+function updateRole (employeename) {
     inquirer
         .prompt ([
             {
                 type: 'input',
-                message: 'What is the new first name?',
-                name: 'newFirstName'
+                message: `Please enter the new role id for ${employeename}`,
+                name: 'newRole'
             }
         ])
-        .then ((newName) => {
-            db.query(`UPDATE employee SET first_name = '${newName} WHERE first_name = ${employeename}`)
+        .then ((response) => {
+
+            var resNum = parseInt(response.newRole)
+
+            if (Number.isInteger(resNum)) {
+            db.query(`UPDATE employee SET role_id = ${resNum} WHERE first_name = '${employeename}';`);
+            console.log(`${employeename} successfully updated!`);
+            setTimeout(mainPrompt, 3000);
+            } else {
+                console.log('Please enter a valid number')
+                setTimeout(updateRole(employeename), 3000)
+            }
         })
 }
 
@@ -268,6 +270,6 @@ function getDepartments () {
     });
 }
 
-
+roleList()
 mainPrompt()
 // departmentList()
